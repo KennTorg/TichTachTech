@@ -8,6 +8,8 @@ export const translations = {
     services: {
       title: "What we build",
       subtitle: "Serious engineering in a playful wrapper",
+      speechBubble: "Shoot the boxes!",
+      winSpeechBubble: "YAY! 🎉",
       winMessage: "🎉 You won!",
       aiSolutions: {
         title: "AI Solutions",
@@ -29,6 +31,7 @@ export const translations = {
     projects: {
       title: "Experiments",
       subtitle: "Drag them. Poke them. They behave. Sometimes.",
+      speechBubble: "Throw them around!",
       viewProject: "View project",
       items: {
         freelanceFlow: {
@@ -58,7 +61,20 @@ export const translations = {
     contact: {
       button: "Knock Knock",
       revealButton: "Let's talk",
-      subtitle: "We'll probably answer. Eventually."
+      subtitle: "Who's there?",
+      speechBubble: "We'll probably answer. Eventually.",
+      modal: {
+        title: "Get in touch",
+        subtitle: "Tell us about your project",
+        name: "Name",
+        email: "Email",
+        message: "Message",
+        messagePlaceholder: "Tell us what you're working on...",
+        send: "Send message",
+        sending: "Sending...",
+        successTitle: "Message sent!",
+        successMessage: "We'll get back to you soon."
+      }
     },
     footer: "Building weirdly wonderful web stuff"
   },
@@ -71,6 +87,8 @@ export const translations = {
     services: {
       title: "Hva vi bygger",
       subtitle: "Seriøs engineering i en leken innpakning",
+      speechBubble: "Skyt boksene!",
+      winSpeechBubble: "YAY! 🎉",
       winMessage: "🎉 Du vant!",
       aiSolutions: {
         title: "AI-løsninger",
@@ -92,6 +110,7 @@ export const translations = {
     projects: {
       title: "Eksperimenter",
       subtitle: "Dra dem. Dult dem. De oppfører seg. Noen ganger.",
+      speechBubble: "Kast dem rundt!",
       viewProject: "Se prosjekt",
       items: {
         freelanceFlow: {
@@ -121,7 +140,20 @@ export const translations = {
     contact: {
       button: "Bank Bank",
       revealButton: "La oss snakke",
-      subtitle: "Vi svarer sikkert. Til slutt."
+      subtitle: "Hvem der?",
+      speechBubble: "Vi svarer sikkert. Til slutt.",
+      modal: {
+        title: "Ta kontakt",
+        subtitle: "Fortell oss om prosjektet ditt",
+        name: "Navn",
+        email: "E-post",
+        message: "Melding",
+        messagePlaceholder: "Fortell oss hva du jobber med...",
+        send: "Send melding",
+        sending: "Sender...",
+        successTitle: "Melding sendt!",
+        successMessage: "Vi svarer deg snart."
+      }
     },
     footer: "Vi bygger rart, vidunderlig web-greier"
   }

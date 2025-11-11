@@ -11,6 +11,7 @@ import { useLanguage } from './context/LanguageContext';
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [smileyExpression, setSmileyExpression] = useState(null);
+  const [speechBubbleType, setSpeechBubbleType] = useState(null); // 'contact', 'services', eller null
   const { language, toggleLanguage } = useLanguage();
 
   const handleDarkModeToggle = () => {
@@ -32,11 +33,40 @@ export default function App() {
       }}
     >
       {/* Main content */}
-      <Hero darkMode={darkMode} smileyExpression={smileyExpression} language={language} />
-      <Services darkMode={darkMode} language={language} />
-      <Projects darkMode={darkMode} language={language} />
+      <Hero 
+        darkMode={darkMode} 
+        smileyExpression={smileyExpression} 
+        language={language}
+        speechBubbleType={speechBubbleType}
+        setSpeechBubbleType={setSpeechBubbleType}
+      />
+      <Services 
+        darkMode={darkMode} 
+        language={language}
+        onHoverChange={(isHovering) => {
+          // Ikke endre hvis vi feirer
+          if (speechBubbleType !== 'servicesWin') {
+            setSpeechBubbleType(isHovering ? 'services' : null);
+          }
+        }}
+        onGameWon={(won) => setSpeechBubbleType(won ? 'servicesWin' : null)}
+      />
+      <Projects 
+        darkMode={darkMode} 
+        language={language}
+        onHoverChange={(isHovering) => {
+          // Ikke endre hvis vi feirer eller har annen aktiv snakkeboble
+          if (speechBubbleType !== 'servicesWin' && speechBubbleType !== 'services') {
+            setSpeechBubbleType(isHovering ? 'projects' : null);
+          }
+        }}
+      />
       <LabFeed darkMode={darkMode} language={language} />
-      <Contact darkMode={darkMode} language={language} />
+      <Contact 
+        darkMode={darkMode} 
+        language={language}
+        onBankBankClick={() => setSpeechBubbleType('contact')}
+      />
       <Footer darkMode={darkMode} language={language} />
 
       {/* Physics Buttons with collision detection */}

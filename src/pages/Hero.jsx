@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import SmileyLogo from '../components/SmileyLogo';
+import StickyLogo from '../components/StickyLogo';
 import { t } from '../utils/translations';
 
-export default function Hero({ darkMode, smileyExpression, language }) {
+export default function Hero({ darkMode, smileyExpression, language, speechBubbleType, setSpeechBubbleType }) {
   const [scrollY, setScrollY] = useState(0);
+  const logoContainerRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -14,20 +16,59 @@ export default function Hero({ darkMode, smileyExpression, language }) {
 
   const parallax = scrollY * 0.5;
 
+  // Overlay-firkant som vokser over smileyen for å skjule den
+  // Vokser fra 0 til 130px (smiley-størrelse) over første 100px scroll
+  const overlaySize = Math.min(130, (scrollY / 100) * 130);
+  const overlayOpacity = scrollY > 0 ? 1 : 0;
+  
+  // Justerbare verdier for overlay-posisjon
+  const overlayTopOffset = 0.5375; // Smiley-posisjon i logoen (0.5375 = 53.75% fra toppen)
+  const overlayLeftOffset = -71; // Justering horisontalt (negativ = til venstre)
+
   return (
     <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden">
+      {/* StickyLogo - må være utenfor containeren så den ikke fader ut */}
+      <StickyLogo 
+        darkMode={darkMode} 
+        logoContainerRef={logoContainerRef}
+        speechBubbleType={speechBubbleType}
+        setSpeechBubbleType={setSpeechBubbleType}
+        language={language}
+      />
+      
       <div 
         className="text-center relative z-10"
         style={{ transform: `translateY(${parallax}px)` }}
       >
         {/* Smiley Logo */}
         <motion.div
+          ref={logoContainerRef}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-8"
+          className="mb-8 relative"
         >
-          <SmileyLogo darkMode={darkMode} forcedExpression={smileyExpression} size={200} />
+          <SmileyLogo 
+            darkMode={darkMode} 
+            forcedExpression={smileyExpression} 
+            size={200}
+          />
+          
+          {/* Sort overlay-firkant som vokser over smileyen */}
+          <motion.div
+            className="absolute rounded-full"
+            style={{
+              width: overlaySize,
+              height: overlaySize,
+              backgroundColor: darkMode ? '#ffffff' : '#000000',
+              left: `calc(50% + ${overlayLeftOffset}px)`,
+              top: `${overlayTopOffset * 100}%`,
+              transform: 'translate(-50%, -50%)',
+              opacity: overlayOpacity,
+              zIndex: 10,
+              pointerEvents: 'none',
+            }}
+          />
         </motion.div>
 
         {/* Typography with stagger effect */}

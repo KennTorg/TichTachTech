@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
-export default function SmileyLogo({ darkMode = false, forcedExpression = null, size = 220 }) {
+export default function SmileyLogo({ darkMode = false, forcedExpression = null, size = 220, forceSmileyBlack = false }) {
   const [state, setState] = useState({
     isHovered: false,
     isPressed: false,
@@ -154,12 +154,13 @@ export default function SmileyLogo({ darkMode = false, forcedExpression = null, 
         state={{ ...state, expression: currentExpression }} 
         darkMode={darkMode}
         size={size}
+        forceSmileyBlack={forceSmileyBlack}
       />
     </motion.div>
   );
 }
 
-function SmileyLogoSVG({ state, darkMode, size }) {
+function SmileyLogoSVG({ state, darkMode, size, forceSmileyBlack = false }) {
   const { isBlinking, expression, mousePos, isHovered } = state;
   
   const eyeOffsetX = isHovered ? mousePos.x * 3 : 0;
@@ -205,7 +206,7 @@ function SmileyLogoSVG({ state, darkMode, size }) {
         cx="130" 
         cy="115" 
         r="65" 
-        fill={darkMode ? '#000000' : '#ffffff'}
+        fill={forceSmileyBlack ? '#000000' : (darkMode ? '#000000' : '#ffffff')}
         className="transition-colors duration-700"
       />
       
@@ -218,7 +219,7 @@ function SmileyLogoSVG({ state, darkMode, size }) {
           cy="105" 
           rx={eyeWidth} 
           ry={eyeHeight} 
-          fill={darkMode ? '#ffffff' : '#0a0a0a'}
+          fill={forceSmileyBlack ? '#ffffff' : (darkMode ? '#ffffff' : '#0a0a0a')}
           className="transition-colors duration-700"
         />
         <ellipse 
@@ -226,7 +227,7 @@ function SmileyLogoSVG({ state, darkMode, size }) {
           cy="105" 
           rx={eyeWidth} 
           ry={eyeHeight} 
-          fill={darkMode ? '#ffffff' : '#0a0a0a'}
+          fill={forceSmileyBlack ? '#ffffff' : (darkMode ? '#ffffff' : '#0a0a0a')}
           className="transition-colors duration-700"
         />
       </g>
@@ -256,7 +257,7 @@ function SmileyLogoSVG({ state, darkMode, size }) {
 
       <path 
         d={currentSmile.path}
-        stroke={darkMode ? '#ffffff' : '#0a0a0a'}
+        stroke={forceSmileyBlack ? '#ffffff' : (darkMode ? '#ffffff' : '#0a0a0a')}
         strokeWidth={currentSmile.width}
         fill="none" 
         strokeLinecap="round"

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { t } from '../utils/translations';
 
-export default function Projects({ darkMode, language }) {
+export default function Projects({ darkMode, language, onHoverChange }) {
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -30,7 +30,15 @@ export default function Projects({ darkMode, language }) {
   const isInView = scrollY > 1200;
 
   return (
-    <section className="min-h-screen flex items-center justify-center px-6 py-20">
+    <section 
+      className="min-h-screen flex items-center justify-center px-6 py-20"
+      onMouseEnter={() => {
+        if (onHoverChange) onHoverChange(true);
+      }}
+      onMouseLeave={() => {
+        if (onHoverChange) onHoverChange(false);
+      }}
+    >
       <div className="max-w-5xl w-full">
         <motion.div 
           className="text-center mb-12"

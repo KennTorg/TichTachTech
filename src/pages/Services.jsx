@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Bot, Smartphone, Boxes, Zap } from 'lucide-react';
 import { t, translations } from '../utils/translations';
 
-export default function Services({ darkMode, language }) {
+export default function Services({ darkMode, language, onHoverChange, onGameWon }) {
   const [isHovering, setIsHovering] = useState(false);
   const [splashes, setSplashes] = useState([]);
   const [gameWon, setGameWon] = useState(false);
@@ -46,9 +46,17 @@ export default function Services({ darkMode, language }) {
 
   useEffect(() => {
     if (!arenaRef.current) return;
-    initCards();
-    startLoop();
-    return () => rafRef.current && cancelAnimationFrame(rafRef.current);
+    
+    // Vent litt så arena får riktige dimensjoner
+    const timer = setTimeout(() => {
+      initCards();
+      startLoop();
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      rafRef.current && cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
   function initCards() {
@@ -56,6 +64,14 @@ export default function Services({ darkMode, language }) {
     if (!arena) return;
     const W = arena.clientWidth;
     const H = arena.clientHeight;
+    
+    // Sjekk at arena har gyldige dimensjoner
+    if (W < 100 || H < 100) {
+      console.warn('Arena dimensions not ready, retrying...');
+      setTimeout(initCards, 100);
+      return;
+    }
+    
     itemsRef.current = containerRefs.current
       .filter(Boolean)
       .map((el) => {
@@ -92,14 +108,61 @@ export default function Services({ darkMode, language }) {
       const minX = CARD_W / 2 + PADDING, maxX = W - CARD_W / 2 - PADDING;
       const minY = CARD_H / 2 + PADDING, maxY = H - CARD_H / 2 - PADDING;
 
-      if (a.x < minX) { a.x = minX; a.vx = Math.abs(a.vx) * RESTITUTION; }
-      if (a.x > maxX) { a.x = maxX; a.vx = -Math.abs(a.vx) * RESTITUTION; }
-      if (a.y < minY) { a.y = minY; a.vy = Math.abs(a.vy) * RESTITUTION; }
-      if (a.y > maxY) { a.y = maxY; a.vy = -Math.abs(a.vy) * RESTITUTION; }
+      // Detect corners with larger margin
+      const cornerMargin = 50;
+      const nearLeftEdge = a.x < minX + cornerMargin;
+      const nearRightEdge = a.x > maxX - cornerMargin;
+      const nearTopEdge = a.y < minY + cornerMargin;
+      const nearBottomEdge = a.y > maxY - cornerMargin;
+      
+      const inTopLeft = nearLeftEdge && nearTopEdge;
+      const inTopRight = nearRightEdge && nearTopEdge;
+      const inBottomLeft = nearLeftEdge && nearBottomEdge;
+      const inBottomRight = nearRightEdge && nearBottomEdge;
+      const inAnyCorner = inTopLeft || inTopRight || inBottomLeft || inBottomRight;
+
+      // Wall bounces with corner escape
+      if (a.x < minX) { 
+        a.x = minX; 
+        a.vx = Math.abs(a.vx) * RESTITUTION;
+        if (inAnyCorner) a.vx = Math.max(a.vx, 3.0); // Stronger push
+      }
+      if (a.x > maxX) { 
+        a.x = maxX; 
+        a.vx = -Math.abs(a.vx) * RESTITUTION;
+        if (inAnyCorner) a.vx = Math.min(a.vx, -3.0); // Stronger push
+      }
+      if (a.y < minY) { 
+        a.y = minY; 
+        a.vy = Math.abs(a.vy) * RESTITUTION;
+        if (inAnyCorner) a.vy = Math.max(a.vy, 3.0); // Stronger push
+      }
+      if (a.y > maxY) { 
+        a.y = maxY; 
+        a.vy = -Math.abs(a.vy) * RESTITUTION;
+        if (inAnyCorner) a.vy = Math.min(a.vy, -3.0); // Stronger push
+      }
 
       a.vx *= FRICTION; a.vy *= FRICTION;
       const sp = Math.hypot(a.vx, a.vy);
-      if (sp < MIN_SPEED) {
+      
+      // Aggressive corner escape
+      if (inAnyCorner) {
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        
+        // Push diagonally towards center
+        const towardCenterX = centerX - a.x;
+        const towardCenterY = centerY - a.y;
+        const dist = Math.hypot(towardCenterX, towardCenterY);
+        
+        if (dist > 0) {
+          const pushStrength = 4.0;
+          a.vx += (towardCenterX / dist) * pushStrength;
+          a.vy += (towardCenterY / dist) * pushStrength;
+        }
+      } else if (sp < MIN_SPEED) {
+        // Normal random kick when too slow (not in corner)
         a.vx += (Math.random() - 0.5) * 0.9;
         a.vy += (Math.random() - 0.5) * 0.9;
       }
@@ -165,8 +228,11 @@ export default function Services({ darkMode, language }) {
     setGameWon(true);
     // stopp alt
     itemsRef.current.forEach((it) => { it.vx = 0; it.vy = 0; });
+    // Varsle App om seier
+    if (onGameWon) onGameWon(true);
     setTimeout(() => {
       setGameWon(false);
+      if (onGameWon) onGameWon(false);
       // reset arena
       initCards();
     }, 2200);
@@ -186,15 +252,25 @@ export default function Services({ darkMode, language }) {
 
         <div
           ref={arenaRef}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
+          onMouseEnter={() => {
+            setIsHovering(true);
+            if (onHoverChange) onHoverChange(true);
+          }}
+          onMouseLeave={() => {
+            setIsHovering(false);
+            if (onHoverChange) onHoverChange(false);
+          }}
           onClick={handleArenaClick}
-          className="relative rounded-3xl overflow-hidden mx-auto"
+          className="relative rounded-3xl overflow-hidden mx-auto transition-all duration-300"
           style={{
             width: '100%',
             height: '600px',
-            backgroundColor: darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-            border: `2px solid ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+            backgroundColor: isHovering 
+              ? (darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')
+              : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'),
+            border: `2px solid ${isHovering 
+              ? (darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')
+              : (darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')}`,
             cursor: isHovering ? 'crosshair' : 'default',
           }}
         >
@@ -220,10 +296,10 @@ export default function Services({ darkMode, language }) {
             />
           ))}
 
-          {/* cards */}
+          {/* cards - bruker stabil key basert på indeks */}
           {cards.map((c, i) => (
             <div
-              key={c.title}
+              key={i}
               ref={(el) => (containerRefs.current[i] = el)}
               className="absolute will-change-transform"
               style={{
