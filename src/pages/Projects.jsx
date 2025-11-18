@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { t } from '../utils/translations';
+import { useProjects } from '../context/ProjectContext';
 
 export default function Projects({ darkMode, language, onHoverChange }) {
   const [scrollY, setScrollY] = useState(0);
+  const { getActiveProjects } = useProjects();
+  
+  // Hent prosjekter fra context
+  const contextProjects = getActiveProjects();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -12,7 +17,8 @@ export default function Projects({ darkMode, language, onHoverChange }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const projects = [
+  // Fallback til default prosjekter hvis ingen er i context
+  const defaultProjects = [
     { 
       title: t(language, 'projects.items.freelanceFlow.title'), 
       subtitle: t(language, 'projects.items.freelanceFlow.subtitle') 
@@ -26,6 +32,17 @@ export default function Projects({ darkMode, language, onHoverChange }) {
       subtitle: t(language, 'projects.items.diaperRadar.subtitle') 
     },
   ];
+
+  // Bruk context-prosjekter hvis tilgjengelig, ellers fallback
+  const projects = contextProjects.length > 0 
+    ? contextProjects.map(p => ({
+        id: p.id,
+        title: p.title,
+        subtitle: p.description,
+        tags: p.tags,
+        featured: p.featured,
+      }))
+    : defaultProjects;
 
   const isInView = scrollY > 1200;
 
@@ -64,7 +81,7 @@ export default function Projects({ darkMode, language, onHoverChange }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {projects.map((project, index) => (
             <ProjectCard
-              key={project.title}
+              key={project.id || project.title}
               project={project}
               index={index}
               isInView={isInView}
@@ -104,13 +121,26 @@ function ProjectCard({ project, index, isInView, darkMode, language }) {
       }}
     >
       <div 
-        className="rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300"
+        className="rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 relative overflow-hidden"
         style={{
           backgroundColor: darkMode ? '#1a1a1a' : '#ffffff',
           borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
           borderWidth: '1px',
         }}
       >
+        {/* Featured badge */}
+        {project.featured && (
+          <div 
+            className="absolute top-4 right-4 px-2 py-1 rounded text-xs font-bold"
+            style={{
+              backgroundColor: darkMode ? 'rgba(255, 215, 0, 0.2)' : 'rgba(255, 215, 0, 0.3)',
+              color: darkMode ? '#FFD700' : '#B8860B',
+            }}
+          >
+            ⭐ Featured
+          </div>
+        )}
+
         <h3 
           className="text-lg font-semibold mb-2 transition-colors duration-700"
           style={{ color: darkMode ? '#ffffff' : '#0e0e0f' }}
@@ -118,11 +148,29 @@ function ProjectCard({ project, index, isInView, darkMode, language }) {
           {project.title}
         </h3>
         <p 
-          className="text-sm transition-colors duration-700"
+          className="text-sm transition-colors duration-700 mb-3"
           style={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)' }}
         >
           {project.subtitle}
         </p>
+
+        {/* Tags */}
+        {project.tags && project.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {project.tags.slice(0, 3).map((tag, i) => (
+              <span
+                key={i}
+                className="text-xs px-2 py-1 rounded transition-colors duration-700"
+                style={{
+                  backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                  color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
         
         <div 
           className="mt-4 pt-4 transition-colors duration-700"
